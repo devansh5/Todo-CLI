@@ -2,11 +2,11 @@
   "todos": [
     {
       "title": "take a todo cli digital ocean",
-      "complete": false
+      "complete": true
     },
     {
       "title": "take kyle simpson course",
-      "complete": false
+      "complete": true
     },
     {
       "title": "take mdn docs for learning js",
