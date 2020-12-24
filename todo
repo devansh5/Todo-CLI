@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const commands=['new','get','complete','help']
+const commands=['new','get','complete','delete','update','help']
 
 const chalk=require('chalk')
 const args=process.argv
@@ -27,6 +27,8 @@ const usage=function(){
 
         new:    used to create a new todo
         get:    used to retrieve your todos
+        delete: used to delete the todos
+        update: used to update the todos
         complete:used to mark as complete
         help:   used to print te usage guide
     
@@ -71,12 +73,43 @@ function getTodos(){
     todos.forEach(todo=>{
         let todoText=`[${index++}] ${todo.title} `
         if (todo.complete){
-            todoText +=chalk.white.bgCyan.inverse('complete') 
+            todoText +=chalk.black.bgYellow('complete') 
         }
         console.log(chalk.green(todoText))
     })
     return
 }
+// delete todo
+function deleteTodo(){
+    if(args.length != 4){
+        errorLog("invlaid number of arguments passed for delete command")
+        return
+    }
+    let n =Number(args[3])
+
+    if(isNaN(n)){
+        errorLog('Please provide a valid number for delete command')
+        return 
+    }
+
+    let todosLength=db.get('todos').value().length
+    
+    let todosarray=db.get('todos').value()
+
+    if(n>todosLength){
+        errorLog('invalid number passed for delete command')
+        return
+    }
+    let value=todosarray[n-1]
+    todosarray=todosarray.filter(function(item){
+        return item!==value
+    })
+    db.set('todos',todosarray)
+      .write()   
+}
+
+
+// complete todo 
 function completeTodo(){
     if(args.length != 4){
         errorLog("invlaid number of arguments passed for complete command")
@@ -96,7 +129,7 @@ function completeTodo(){
         return
     }
 
-    db.set(`todos[${n-1}.complete`,true).write()
+    db.set(`todos[${n-1}].complete`,true).write()
 }
 
 function errorLog(error){
@@ -104,7 +137,7 @@ function errorLog(error){
     console.log(eLog)
 }
 
-if (args.length> 3 && args[2]!='complete'){
+if (args.length> 3 && args[2]!='complete' && args[2]!='delete'){
     errorLog(`only argument can be accepted`)
     usage()
 }
@@ -126,6 +159,9 @@ switch(args[2]){
         break
     case 'complete':
         completeTodo()
+        break
+    case 'delete':
+        deleteTodo()
         break
     default:
         errorLog('invalid command passed')
