@@ -1,0 +1,108 @@
+#!/usr/bin/env node
+
+const commands=['new','get','complete','help']
+
+const chalk=require('chalk')
+const args=process.argv
+//...
+const rl = require('readline');
+
+const low = require('lowdb')
+const FileSync = require('lowdb/adapters/FileSync')
+
+const adapter = new FileSync('db.json')
+const db = low(adapter)
+
+// Set some defaults (required if your JSON file is empty)
+db.defaults({ todos: []}).write()
+//...
+const usage=function(){
+    const usageText=`
+    todo helps you manage you todo tasks
+
+    usage:
+        todo <command>
+
+        commands can be:
+
+        new:    used to create a new todo
+        get:    used to retrieve your todos
+        complete:used to mark as complete
+        help:   used to print te usage guide
+    
+    `
+    console.log(usageText)
+}
+
+
+// used to log error to the console in red color
+
+// prompt the input to enter the data
+function prompt(question){
+    const r=rl.createInterface({
+        input:process.stdin,
+        output:process.stdout,
+        terminal:false
+    });
+    return new Promise((resolve,error)=>{
+        r.question(question,answer=>{
+            r.close()
+            resolve(answer)
+        });
+    })
+}
+
+function newTodo(){
+    const q=chalk.blue('type in your todo\n')
+    prompt(q).then(todo=>{
+        console.log(todo)
+        db.get('todos')
+          .push({
+              title:todo,
+              complete:false
+          })
+          .write()
+    })
+}
+
+function getTodos(){
+    const todos=db.get('todos').value()
+    let index=1;
+    todos.forEach(todo=>{
+        const todoText=`[${index++}] ${todo.title}`
+        console.log(todoText)
+    })
+}
+
+
+function errorLog(error){
+    const eLog=chalk.red(error)
+    console.log(eLog)
+}
+
+if (args.length>3){
+    errorLog(`only argument can be accepted`)
+    usage()
+}
+
+if(commands.indexOf(args[2])==-1){
+    errorLog('invalid command passed')
+    usage()
+}
+
+switch(args[2]){
+    case 'help':
+        usage()
+        break
+    case 'new':
+        newTodo()
+        break
+    case 'get':
+        getTodos()
+        break
+    case 'create':
+        break
+    default:
+        errorLog('invalid command passed')
+        usage()
+}
